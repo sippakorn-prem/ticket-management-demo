@@ -6,7 +6,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import "@uiw/react-markdown-preview/markdown.css";
-import { ArrowRight, Bold, Check, Circle, Clock3, Italic, Search, Ticket as TicketIcon, Underline as UnderlineIcon, UserRound } from "lucide-react";
+import { ArrowRight, BarChart3, Bold, Check, Circle, Clock3, Italic, PieChart, Search, Ticket as TicketIcon, Underline as UnderlineIcon, UserRound } from "lucide-react";
 import TurndownService from "turndown";
 
 import { Badge } from "@/components/ui/badge";
@@ -166,6 +166,152 @@ const seedTickets = [
       ["Triaged", "Service Desk reviewed the submitted issue.", "Service Desk", "2026-06-10 09:10"],
     ],
   }),
+  seedTicket({
+    id: "MA-2026-004",
+    clientAccountId: "CA-001",
+    clientName: "EGAT Operations",
+    clientEmail: "ops@egat.example",
+    project: "EGAT Portal",
+    title: "Login page shows blank screen on Safari",
+    descriptionMarkdown:
+      "Users on Safari 17 cannot load the login page after the latest portal release.\n\n- Reproduced on macOS and iPad\n- Chrome and Edge work normally",
+    status: "new",
+    createdAt: "2026-06-11 07:30",
+    updatedAt: "2026-06-11 07:30",
+    history: [["Submitted", "Client submitted ticket.", "Client", "2026-06-11 07:30"]],
+  }),
+  seedTicket({
+    id: "MA-2026-005",
+    clientAccountId: "CA-003",
+    clientName: "EGAT Control Room",
+    clientEmail: "control-room@egat.example",
+    project: "EGAT Data Platform",
+    title: "Alarm feed delay exceeds 5 minutes",
+    descriptionMarkdown:
+      "Real-time alarm feed lags behind SCADA by more than five minutes during peak load.\n\nExpected: alarms should appear within 30 seconds.",
+    status: "approved",
+    createdAt: "2026-06-08 13:20",
+    updatedAt: "2026-06-09 11:00",
+    history: [
+      ["Submitted", "Client submitted ticket.", "Client", "2026-06-08 13:20"],
+      ["Triaged", "Service Desk classified performance issue.", "Service Desk", "2026-06-08 14:45"],
+      ["Approved", "System Owner approved investigation.", "System Owner", "2026-06-09 11:00"],
+    ],
+  }),
+  seedTicket({
+    id: "MA-2026-006",
+    clientAccountId: "CA-002",
+    clientName: "EGAT Planning",
+    clientEmail: "planning@egat.example",
+    project: "EGAT Mobile",
+    title: "Push notification not received for outage approval",
+    descriptionMarkdown:
+      "Approvers do not receive push notifications when a new outage request is submitted.\n\n- Tested on Android 14\n- In-app alerts still work",
+    status: "inDevelopment",
+    createdAt: "2026-06-07 10:00",
+    updatedAt: "2026-06-10 14:30",
+    history: [
+      ["Submitted", "Client submitted ticket.", "Client", "2026-06-07 10:00"],
+      ["Triaged", "Service Desk reviewed notification flow.", "Service Desk", "2026-06-07 11:15"],
+      ["Approved", "System Owner approved fix scope.", "System Owner", "2026-06-08 09:00"],
+      ["In Development", "Developer started fix/build.", "Developer", "2026-06-10 14:30"],
+    ],
+  }),
+  seedTicket({
+    id: "MA-2026-007",
+    clientAccountId: "CA-001",
+    clientName: "EGAT Operations",
+    clientEmail: "ops@egat.example",
+    project: "EGAT Data Platform",
+    title: "Daily generation summary shows incorrect totals",
+    descriptionMarkdown:
+      "The daily generation summary report totals do not match source meter readings.\n\n- Affects June 1–3 data\n- Discrepancy is roughly 2%",
+    status: "qaFailed",
+    createdAt: "2026-06-03 08:00",
+    updatedAt: "2026-06-10 16:45",
+    history: [
+      ["Submitted", "Client submitted ticket.", "Client", "2026-06-03 08:00"],
+      ["Triaged", "Service Desk reviewed calculation logic.", "Service Desk", "2026-06-03 10:30"],
+      ["Approved", "System Owner approved correction.", "System Owner", "2026-06-04 09:00"],
+      ["In Development", "Developer adjusted aggregation query.", "Developer", "2026-06-06 11:00"],
+      ["Ready for QA", "Fix deployed to staging.", "Developer", "2026-06-09 15:00"],
+      ["QA Not Pass", "QA found totals still mismatch on edge cases.", "QA", "2026-06-10 16:45"],
+    ],
+  }),
+  seedTicket({
+    id: "MA-2026-008",
+    clientAccountId: "CA-001",
+    clientName: "EGAT Operations",
+    clientEmail: "ops@egat.example",
+    project: "EGAT Portal",
+    title: "User role dropdown missing contractor option",
+    descriptionMarkdown:
+      "Admin cannot assign the contractor role when provisioning portal users.\n\nContractor role was available in the previous release.",
+    status: "closed",
+    createdAt: "2026-05-28 09:15",
+    updatedAt: "2026-06-06 17:00",
+    history: [
+      ["Submitted", "Client submitted ticket.", "Client", "2026-05-28 09:15"],
+      ["Triaged", "Service Desk confirmed role mapping gap.", "Service Desk", "2026-05-28 11:00"],
+      ["Approved", "System Owner approved fix.", "System Owner", "2026-05-29 10:00"],
+      ["In Development", "Developer restored contractor role.", "Developer", "2026-05-30 14:00"],
+      ["Ready for QA", "Fix deployed to staging.", "Developer", "2026-06-02 10:00"],
+      ["QA Passed", "QA passed regression testing.", "QA", "2026-06-03 11:30"],
+      ["Waiting Client UAT", "Client notified for UAT.", "Service Desk", "2026-06-03 14:00"],
+      ["UAT Passed", "Client confirmed UAT passed.", "Client", "2026-06-05 09:00"],
+      ["Ready to Deploy", "Production deploy approved.", "System Owner", "2026-06-05 15:00"],
+      ["Deployed", "Fix deployed to production.", "Developer", "2026-06-06 10:00"],
+      ["Closed", "Service Desk sent report and closed ticket.", "Service Desk", "2026-06-06 17:00"],
+    ],
+  }),
+  seedTicket({
+    id: "MA-2026-009",
+    clientAccountId: "CA-003",
+    clientName: "EGAT Control Room",
+    clientEmail: "control-room@egat.example",
+    project: "EGAT Data Platform",
+    title: "Historical trend chart missing weekend data",
+    descriptionMarkdown:
+      "Weekend intervals are skipped on the 7-day historical trend chart.\n\n- Visible on all plant dashboards\n- Weekday data renders correctly",
+    status: "uatFailed",
+    createdAt: "2026-06-01 14:00",
+    updatedAt: "2026-06-09 10:20",
+    history: [
+      ["Submitted", "Client submitted ticket.", "Client", "2026-06-01 14:00"],
+      ["Triaged", "Service Desk reviewed chart query.", "Service Desk", "2026-06-01 16:00"],
+      ["Approved", "System Owner approved fix.", "System Owner", "2026-06-02 09:30"],
+      ["In Development", "Developer fixed date range filter.", "Developer", "2026-06-04 13:00"],
+      ["Ready for QA", "Fix deployed to staging.", "Developer", "2026-06-06 16:00"],
+      ["QA Passed", "QA passed SIT testing.", "QA", "2026-06-07 11:00"],
+      ["Waiting Client UAT", "Client notified for UAT.", "Service Desk", "2026-06-07 14:00"],
+      ["UAT Not Pass", "Client reported missing data on Saturday intervals.", "Client", "2026-06-09 10:20"],
+    ],
+  }),
+  seedTicket({
+    id: "MA-2026-010",
+    clientAccountId: "CA-002",
+    clientName: "EGAT Planning",
+    clientEmail: "planning@egat.example",
+    project: "EGAT Mobile",
+    title: "Offline mode loses draft outage notes",
+    descriptionMarkdown:
+      "Draft outage notes disappear when the app reconnects after brief network loss.\n\nSteps:\n1. Start outage request offline\n2. Reconnect within 2 minutes\n3. Draft text is cleared",
+    status: "deployed",
+    createdAt: "2026-05-25 08:30",
+    updatedAt: "2026-06-10 11:45",
+    history: [
+      ["Submitted", "Client submitted ticket.", "Client", "2026-05-25 08:30"],
+      ["Triaged", "Service Desk reviewed offline sync behavior.", "Service Desk", "2026-05-25 10:00"],
+      ["Approved", "System Owner approved fix.", "System Owner", "2026-05-26 09:00"],
+      ["In Development", "Developer added local draft persistence.", "Developer", "2026-05-28 14:00"],
+      ["Ready for QA", "Fix deployed to staging.", "Developer", "2026-06-01 10:00"],
+      ["QA Passed", "QA passed offline scenario tests.", "QA", "2026-06-03 15:00"],
+      ["Waiting Client UAT", "Client notified for UAT.", "Service Desk", "2026-06-03 17:00"],
+      ["UAT Passed", "Client confirmed draft retention works.", "Client", "2026-06-05 10:00"],
+      ["Ready to Deploy", "Production deploy approved.", "System Owner", "2026-06-08 09:00"],
+      ["Deployed", "Fix deployed to production.", "Developer", "2026-06-10 11:45"],
+    ],
+  }),
 ];
 
 function seedTicket(ticket) {
@@ -225,7 +371,7 @@ function App() {
           <nav className="flex flex-wrap gap-2" aria-label="Main navigation">
             <NavButton active={route === "/send-ticket"} onClick={() => navigate("/send-ticket")}>Send Ticket</NavButton>
             <NavButton active={route === "/track-issue"} onClick={() => navigate("/track-issue")}>Track Issue</NavButton>
-            <NavButton active={route === "/admin"} onClick={() => navigate("/admin")}>Admin Page</NavButton>
+            <NavButton active={route === "/admin" || route === "/admin/tickets"} onClick={() => navigate("/admin")}>Admin Page</NavButton>
             <NavButton active={route === "/accounts"} onClick={() => navigate("/accounts")}>Client Accounts</NavButton>
             <Button variant="outline" onClick={resetDemo}>Reset demo</Button>
           </nav>
@@ -233,13 +379,16 @@ function App() {
       </header>
 
       {route === "/admin" ? (
-        <AdminPage
-          key={`admin-${resetToken}`}
+        <AdminDashboardPage key={`admin-dashboard-${resetToken}`} tickets={tickets} navigate={navigate} />
+      ) : route === "/admin/tickets" ? (
+        <AdminTicketsPage
+          key={`admin-tickets-${resetToken}`}
           tickets={tickets}
           selectedTicketId={selectedTicketId}
           setSelectedTicketId={setSelectedTicketId}
           setTickets={setTickets}
           showToast={showToast}
+          navigate={navigate}
         />
       ) : route === "/accounts" ? (
         <ClientAccountsPage key={`accounts-${resetToken}`} accounts={accounts} setAccounts={setAccounts} showToast={showToast} />
@@ -320,6 +469,188 @@ function StatCard({ label, value, hint }) {
   );
 }
 
+const blockedStatuses = ["qaFailed", "uatFailed"];
+
+function countWorkflowPipeline(ticketList) {
+  return workflowSteps.map((step) => ({
+    label: step.label,
+    value: ticketList.filter((ticket) => step.statuses.includes(ticket.status)).length,
+  }));
+}
+
+function countByProject(ticketList) {
+  const counts = ticketList.reduce((accumulator, ticket) => {
+    accumulator[ticket.project] = (accumulator[ticket.project] || 0) + 1;
+    return accumulator;
+  }, {});
+
+  return Object.entries(counts)
+    .sort((left, right) => right[1] - left[1])
+    .map(([label, value]) => ({ label, value }));
+}
+
+function countStatusMix(ticketList) {
+  const closed = ticketList.filter((ticket) => ticket.status === "closed").length;
+  const waitingClient = ticketList.filter((ticket) => ticket.status === "waitingUat").length;
+  const blocked = ticketList.filter((ticket) => blockedStatuses.includes(ticket.status)).length;
+  const inProgress = ticketList.length - closed - waitingClient - blocked;
+
+  return [
+    { label: "In progress", value: inProgress, barClass: "bg-foreground", dotClass: "bg-foreground" },
+    { label: "Waiting client", value: waitingClient, barClass: "bg-muted-foreground/70", dotClass: "bg-muted-foreground" },
+    { label: "QA / UAT failed", value: blocked, barClass: "bg-destructive", dotClass: "bg-destructive" },
+    { label: "Closed", value: closed, barClass: "bg-muted", dotClass: "bg-muted" },
+  ];
+}
+
+function HorizontalBarChart({ items, emptyLabel = "No tickets to display." }) {
+  const maxValue = Math.max(...items.map((item) => item.value), 1);
+
+  if (!items.length) {
+    return <p className="text-sm text-muted-foreground">{emptyLabel}</p>;
+  }
+
+  return (
+    <div className="grid gap-3">
+      {items.map((item) => (
+        <div key={item.label} className="grid gap-1.5">
+          <div className="flex items-center justify-between gap-3 text-sm">
+            <span className="truncate">{item.label}</span>
+            <span className="shrink-0 font-medium tabular-nums">{item.value}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
+            <div
+              className={cn("h-full rounded-full bg-foreground transition-all duration-500", item.barClass)}
+              style={{ width: `${(item.value / maxValue) * 100}%` }}
+            />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ChartLegend({ segments }) {
+  return (
+    <div className="grid gap-2 sm:grid-cols-2">
+      {segments.map((segment) => (
+        <div key={segment.label} className="flex items-center justify-between gap-3 rounded-md border bg-muted/20 px-3 py-2 text-sm">
+          <div className="flex min-w-0 items-center gap-2">
+            <span className={cn("size-2.5 shrink-0 rounded-full", segment.dotClass)} aria-hidden="true" />
+            <span className="truncate">{segment.label}</span>
+          </div>
+          <span className="shrink-0 font-medium tabular-nums">{segment.value}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function DonutChart({ segments, total }) {
+  const radius = 15.5;
+  const circumference = 2 * Math.PI * radius;
+  let offset = 0;
+
+  return (
+    <div className="relative mx-auto size-36">
+      <svg viewBox="0 0 36 36" className="size-full -rotate-90" aria-hidden="true">
+        <circle cx="18" cy="18" r={radius} fill="none" stroke="currentColor" className="text-muted" strokeWidth="3.5" />
+        {total > 0
+          ? segments.map((segment) => {
+              const length = (segment.value / total) * circumference;
+              const circle = (
+                <circle
+                  key={segment.label}
+                  cx="18"
+                  cy="18"
+                  r={radius}
+                  fill="none"
+                  stroke="currentColor"
+                  className={segment.strokeClass}
+                  strokeWidth="3.5"
+                  strokeLinecap="butt"
+                  strokeDasharray={`${length} ${circumference}`}
+                  strokeDashoffset={-offset}
+                />
+              );
+              offset += length;
+              return circle;
+            })
+          : null}
+      </svg>
+      <div className="absolute inset-0 flex flex-col items-center justify-center">
+        <span className="text-3xl font-semibold tabular-nums tracking-tight">{total}</span>
+        <span className="text-xs text-muted-foreground">tickets</span>
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboardCharts({ tickets, projectFilter }) {
+  const pipeline = useMemo(() => countWorkflowPipeline(tickets), [tickets]);
+  const statusMix = useMemo(() => countStatusMix(tickets), [tickets]);
+  const projectBreakdown = useMemo(() => countByProject(tickets), [tickets]);
+  const donutSegments = statusMix.map((segment) => ({
+    ...segment,
+    strokeClass:
+      segment.label === "In progress"
+        ? "text-foreground"
+        : segment.label === "Waiting client"
+          ? "text-muted-foreground"
+          : segment.label === "QA / UAT failed"
+            ? "text-destructive"
+            : "text-muted",
+  }));
+
+  return (
+    <section className="grid gap-4 xl:grid-cols-3">
+      <Card className="shadow-sm xl:col-span-2">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <BarChart3 className="size-4 text-muted-foreground" aria-hidden="true" />
+            Workflow pipeline
+          </CardTitle>
+          <CardDescription>
+            {projectFilter === "All Projects" ? "Tickets at each MA workflow stage." : `Pipeline for ${projectFilter}.`}
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <HorizontalBarChart items={pipeline} />
+        </CardContent>
+      </Card>
+
+      <Card className="shadow-sm">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-base">
+            <PieChart className="size-4 text-muted-foreground" aria-hidden="true" />
+            Status overview
+          </CardTitle>
+          <CardDescription>Open, blocked, waiting, and closed mix.</CardDescription>
+        </CardHeader>
+        <CardContent className="grid gap-6">
+          <DonutChart segments={donutSegments} total={tickets.length} />
+          <ChartLegend segments={statusMix} />
+        </CardContent>
+      </Card>
+
+      {projectFilter === "All Projects" && (
+        <Card className="shadow-sm xl:col-span-3">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2 text-base">
+              <BarChart3 className="size-4 text-muted-foreground" aria-hidden="true" />
+              Tickets by project
+            </CardTitle>
+            <CardDescription>Volume across provisioned client projects.</CardDescription>
+          </CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            <HorizontalBarChart items={projectBreakdown} />
+          </CardContent>
+        </Card>
+      )}
+    </section>
+  );
+}
+
 function TicketProgress({ status }) {
   const activeIndex = Math.max(
     0,
@@ -358,32 +689,39 @@ function TicketProgress({ status }) {
 
 function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, showToast, navigate }) {
   const activeAccounts = accounts.filter((account) => account.active);
+  const availableProjects = useMemo(
+    () => [...new Set(activeAccounts.flatMap((account) => account.projects))].sort(),
+    [activeAccounts],
+  );
   const [createdTicketId, setCreatedTicketId] = useState("");
-  const [selectedAccountId, setSelectedAccountId] = useState(activeAccounts[0]?.id || "");
-  const [selectedProject, setSelectedProject] = useState(activeAccounts[0]?.projects[0] || "");
+  const [selectedProject, setSelectedProject] = useState(availableProjects[0] || "");
   const [descriptionMarkdown, setDescriptionMarkdown] = useState("");
-  const selectedAccount = activeAccounts.find((account) => account.id === selectedAccountId) || activeAccounts[0];
 
   useEffect(() => {
-    if (!selectedAccount && activeAccounts[0]) {
-      setSelectedAccountId(activeAccounts[0].id);
-      setSelectedProject(activeAccounts[0].projects[0] || "");
+    if (!availableProjects.length) {
+      setSelectedProject("");
       return;
     }
 
-    if (selectedAccount && !selectedAccount.projects.includes(selectedProject)) {
-      setSelectedProject(selectedAccount.projects[0] || "");
+    if (!availableProjects.includes(selectedProject)) {
+      setSelectedProject(availableProjects[0]);
     }
-  }, [activeAccounts, selectedAccount, selectedProject]);
+  }, [availableProjects, selectedProject]);
 
   function submitTicket(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
     const createdAt = now();
-    const account = activeAccounts.find((item) => item.id === selectedAccountId);
+
+    if (!selectedProject) {
+      showToast("Select a project first.");
+      return;
+    }
+
+    const account = activeAccounts.find((item) => item.projects.includes(selectedProject));
 
     if (!account) {
-      showToast("Select a client account first.");
+      showToast("No client account is linked to this project.");
       return;
     }
 
@@ -397,7 +735,7 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
       clientAccountId: account.id,
       clientName: account.name,
       clientEmail: account.email,
-      project: selectedProject || account.projects[0] || "Unassigned Project",
+      project: selectedProject,
       title: String(form.get("title") || "").trim(),
       descriptionMarkdown: descriptionMarkdown.trim(),
       status: "new",
@@ -421,7 +759,7 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
         centered
         eyebrow="User UI"
         title="Send ticket"
-        description="Open a maintenance ticket with the account and project already provided by back office."
+        description="Three fields: project, issue title, and description."
       />
       <Card className="shadow-sm">
         <CardHeader>
@@ -429,33 +767,19 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
             <TicketIcon className="size-5" aria-hidden="true" />
             Ticket information
           </CardTitle>
-          <CardDescription>Keep it simple: title, description, and the project affected.</CardDescription>
+          <CardDescription>Pick the project, summarize the issue, and describe what happened.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="grid gap-5" onSubmit={submitTicket}>
             {activeAccounts.length ? (
               <>
-                <FormField label="Client account">
-                  <Select value={selectedAccount?.id || ""} onValueChange={setSelectedAccountId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select client account" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {activeAccounts.map((account) => (
-                        <SelectItem key={account.id} value={account.id}>
-                          {account.name} - {account.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </FormField>
                 <FormField label="Project">
                   <Select value={selectedProject} onValueChange={setSelectedProject}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select project" />
                     </SelectTrigger>
                     <SelectContent>
-                      {(selectedAccount?.projects || []).map((project) => (
+                      {availableProjects.map((project) => (
                         <SelectItem key={project} value={project}>
                           {project}
                         </SelectItem>
@@ -463,26 +787,10 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
                     </SelectContent>
                   </Select>
                 </FormField>
-                {selectedAccount && (
-                  <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-4 text-sm sm:flex-row sm:items-start sm:justify-between">
-                    <div className="flex gap-3">
-                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background">
-                        <UserRound className="size-4 text-muted-foreground" aria-hidden="true" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{selectedAccount.name}</p>
-                        <p className="text-muted-foreground">{selectedAccount.email}</p>
-                      </div>
-                    </div>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedAccount.projects.map((project) => (
-                        <Badge key={project} variant={project === selectedProject ? "default" : "outline"}>
-                          {project}
-                        </Badge>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <FormField label="Issue title">
+                  <Input name="title" required placeholder="Cannot export report" />
+                </FormField>
+                <MarkdownEditor value={descriptionMarkdown} onChange={setDescriptionMarkdown} />
               </>
             ) : (
               <EmptyState
@@ -492,10 +800,6 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
                 action={<Button variant="outline" type="button" onClick={() => navigate("/accounts")}>Go to Client Accounts</Button>}
               />
             )}
-            <FormField label="Issue title">
-              <Input name="title" required placeholder="Cannot export report" />
-            </FormField>
-            <MarkdownEditor value={descriptionMarkdown} onChange={setDescriptionMarkdown} />
             <Button type="submit" disabled={!activeAccounts.length}>
               Submit ticket
               <ArrowRight className="size-4" aria-hidden="true" />
@@ -677,20 +981,80 @@ function TrackResult({ ticket, hasSearched }) {
   );
 }
 
-function AdminPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets, showToast }) {
+function AdminSubNav({ route, navigate }) {
+  return (
+    <nav className="flex flex-wrap gap-2" aria-label="Admin navigation">
+      <NavButton active={route === "/admin"} className="gap-2" onClick={() => navigate("/admin")}>
+        <BarChart3 className="size-4" aria-hidden="true" />
+        Dashboard
+      </NavButton>
+      <NavButton active={route === "/admin/tickets"} className="gap-2" onClick={() => navigate("/admin/tickets")}>
+        <TicketIcon className="size-4" aria-hidden="true" />
+        Tickets
+      </NavButton>
+    </nav>
+  );
+}
+
+function AdminProjectFilter({ projects, projectFilter, onProjectFilterChange }) {
+  return (
+    <div className="w-full max-w-xs shrink-0">
+      <FormField label="Filter project">
+        <Select value={projectFilter} onValueChange={onProjectFilterChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Filter project" />
+          </SelectTrigger>
+          <SelectContent>
+            {projects.map((project) => (
+              <SelectItem key={project} value={project}>
+                {project}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </FormField>
+    </div>
+  );
+}
+
+function AdminDashboardPage({ tickets, navigate }) {
+  const projects = useMemo(() => ["All Projects", ...Array.from(new Set(tickets.map((ticket) => ticket.project))).sort()], [tickets]);
+  const [projectFilter, setProjectFilter] = useState("All Projects");
+  const filteredTickets = projectFilter === "All Projects" ? tickets : tickets.filter((ticket) => ticket.project === projectFilter);
+  const stats = useMemo(
+    () => [
+      { label: "Total", value: filteredTickets.length, hint: projectFilter === "All Projects" ? "All tickets" : projectFilter },
+      { label: "Open", value: filteredTickets.filter((ticket) => ticket.status !== "closed").length, hint: "Needs action" },
+      { label: "Waiting client", value: filteredTickets.filter((ticket) => ticket.status === "waitingUat").length, hint: "UAT confirmation" },
+      { label: "Closed", value: filteredTickets.filter((ticket) => ticket.status === "closed").length, hint: "Completed" },
+    ],
+    [filteredTickets, projectFilter],
+  );
+
+  return (
+    <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <PageHeader eyebrow="Admin Back Office UI" title="Dashboard" description="Workflow pipeline, status mix, and ticket volume at a glance." />
+        <AdminSubNav route="/admin" navigate={navigate} />
+      </div>
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {stats.map((stat) => (
+            <StatCard key={stat.label} {...stat} />
+          ))}
+        </div>
+        <AdminProjectFilter projects={projects} projectFilter={projectFilter} onProjectFilterChange={setProjectFilter} />
+      </div>
+      <AdminDashboardCharts tickets={filteredTickets} projectFilter={projectFilter} />
+    </main>
+  );
+}
+
+function AdminTicketsPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets, showToast, navigate }) {
   const projects = useMemo(() => ["All Projects", ...Array.from(new Set(tickets.map((ticket) => ticket.project))).sort()], [tickets]);
   const [projectFilter, setProjectFilter] = useState("All Projects");
   const filteredTickets = projectFilter === "All Projects" ? tickets : tickets.filter((ticket) => ticket.project === projectFilter);
   const selectedTicket = filteredTickets.find((ticket) => ticket.id === selectedTicketId) || filteredTickets[0];
-  const stats = useMemo(
-    () => [
-      { label: "Total", value: tickets.length, hint: "All tickets" },
-      { label: "Open", value: tickets.filter((ticket) => ticket.status !== "closed").length, hint: "Needs action" },
-      { label: "Waiting client", value: tickets.filter((ticket) => ticket.status === "waitingUat").length, hint: "UAT confirmation" },
-      { label: "Closed", value: tickets.filter((ticket) => ticket.status === "closed").length, hint: "Completed" },
-    ],
-    [tickets],
-  );
 
   useEffect(() => {
     if (selectedTicket && selectedTicket.id !== selectedTicketId) {
@@ -738,29 +1102,12 @@ function AdminPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets,
 
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader eyebrow="Admin Back Office UI" title="Manage tickets by project" description="Review incoming tickets, move workflow status, and keep client-facing notes up to date." />
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => (
-          <StatCard key={stat.label} {...stat} />
-        ))}
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+        <PageHeader eyebrow="Admin Back Office UI" title="Manage tickets" description="Review tickets, move workflow status, and keep client-facing notes up to date." />
+        <AdminSubNav route="/admin/tickets" navigate={navigate} />
       </div>
       <div className="flex justify-end">
-        <div className="w-full max-w-xs">
-          <FormField label="Filter project">
-            <Select value={projectFilter} onValueChange={setProjectFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter project" />
-              </SelectTrigger>
-              <SelectContent>
-                {projects.map((project) => (
-                  <SelectItem key={project} value={project}>
-                    {project}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </FormField>
-        </div>
+        <AdminProjectFilter projects={projects} projectFilter={projectFilter} onProjectFilterChange={setProjectFilter} />
       </div>
       <div className="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)]">
         <Card>
@@ -1133,6 +1480,7 @@ function TimelineItem({ item }) {
 }
 
 function getRoute() {
+  if (window.location.pathname === "/admin/tickets") return "/admin/tickets";
   if (window.location.pathname === "/admin") return "/admin";
   if (window.location.pathname === "/accounts") return "/accounts";
   if (window.location.pathname === "/track-issue") return "/track-issue";
