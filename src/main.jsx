@@ -6,7 +6,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import "@uiw/react-markdown-preview/markdown.css";
-import { Bold, Italic, Underline as UnderlineIcon } from "lucide-react";
+import { ArrowRight, Bold, Check, Circle, Clock3, Italic, Search, Ticket as TicketIcon, Underline as UnderlineIcon, UserRound } from "lucide-react";
 import TurndownService from "turndown";
 
 import { Badge } from "@/components/ui/badge";
@@ -67,6 +67,17 @@ const actionsByStatus = {
   readyDeploy: [{ label: "Deploy production", to: "deployed", actor: "Developer", note: "Developer deployed to production." }],
   deployed: [{ label: "Close and report to client", to: "closed", actor: "Service Desk", note: "Service Desk sent report and closed the ticket." }],
 };
+
+const workflowSteps = [
+  { label: "Submit", statuses: ["new"] },
+  { label: "Triage", statuses: ["triage"] },
+  { label: "Approve", statuses: ["approved"] },
+  { label: "Build", statuses: ["inDevelopment", "qaFailed", "uatFailed"] },
+  { label: "QA", statuses: ["readyQa", "qaPassed"] },
+  { label: "UAT", statuses: ["waitingUat", "uatPassed"] },
+  { label: "Deploy", statuses: ["readyDeploy", "deployed"] },
+  { label: "Close", statuses: ["closed"] },
+];
 
 const seedAccounts = [
   {
@@ -282,6 +293,69 @@ function FormField({ label, children }) {
   );
 }
 
+function EmptyState({ icon: Icon = Circle, title, description, action }) {
+  return (
+    <div className="grid justify-items-center gap-3 rounded-lg border border-dashed bg-muted/30 p-6 text-center">
+      <div className="flex size-10 items-center justify-center rounded-full border bg-background">
+        <Icon className="size-4 text-muted-foreground" aria-hidden="true" />
+      </div>
+      <div className="grid gap-1">
+        <p className="text-sm font-medium">{title}</p>
+        {description && <p className="max-w-sm text-sm leading-6 text-muted-foreground">{description}</p>}
+      </div>
+      {action}
+    </div>
+  );
+}
+
+function StatCard({ label, value, hint }) {
+  return (
+    <Card className="shadow-none">
+      <CardContent className="grid gap-1 p-4">
+        <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
+        <p className="text-2xl font-semibold tracking-tight">{value}</p>
+        {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+      </CardContent>
+    </Card>
+  );
+}
+
+function TicketProgress({ status }) {
+  const activeIndex = Math.max(
+    0,
+    workflowSteps.findIndex((step) => step.statuses.includes(status)),
+  );
+
+  return (
+    <div className="grid gap-3">
+      <div className="flex items-center justify-between gap-2 text-xs font-medium text-muted-foreground">
+        <span>Workflow progress</span>
+        <span>{workflowSteps[activeIndex]?.label || "Submit"}</span>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        {workflowSteps.map((step, index) => {
+          const complete = index < activeIndex || status === "closed";
+          const active = index === activeIndex && status !== "closed";
+
+          return (
+            <div
+              key={step.label}
+              className={cn(
+                "flex min-w-24 items-center gap-2 rounded-md border bg-background px-3 py-2 text-xs text-muted-foreground",
+                complete && "bg-foreground text-background",
+                active && "border-foreground text-foreground ring-2 ring-foreground/10",
+              )}
+            >
+              {complete ? <Check className="size-3.5" aria-hidden="true" /> : <Circle className={cn("size-3.5", active && "fill-foreground")} aria-hidden="true" />}
+              <span className="whitespace-nowrap">{step.label}</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, showToast, navigate }) {
   const activeAccounts = accounts.filter((account) => account.active);
   const [createdTicketId, setCreatedTicketId] = useState("");
@@ -347,12 +421,15 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
         centered
         eyebrow="User UI"
         title="Send ticket"
-        description="Client opens a ticket using a provided account. Description is stored as markdown."
+        description="Open a maintenance ticket with the account and project already provided by back office."
       />
-      <Card>
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Ticket information</CardTitle>
-          <CardDescription>Select the provided account, project, and describe the issue.</CardDescription>
+          <CardTitle className="flex items-center gap-2">
+            <TicketIcon className="size-5" aria-hidden="true" />
+            Ticket information
+          </CardTitle>
+          <CardDescription>Keep it simple: title, description, and the project affected.</CardDescription>
         </CardHeader>
         <CardContent>
           <form className="grid gap-5" onSubmit={submitTicket}>
@@ -386,21 +463,58 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
                     </SelectContent>
                   </Select>
                 </FormField>
+                {selectedAccount && (
+                  <div className="flex flex-col gap-3 rounded-lg border bg-muted/30 p-4 text-sm sm:flex-row sm:items-start sm:justify-between">
+                    <div className="flex gap-3">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background">
+                        <UserRound className="size-4 text-muted-foreground" aria-hidden="true" />
+                      </div>
+                      <div>
+                        <p className="font-medium">{selectedAccount.name}</p>
+                        <p className="text-muted-foreground">{selectedAccount.email}</p>
+                      </div>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedAccount.projects.map((project) => (
+                        <Badge key={project} variant={project === selectedProject ? "default" : "outline"}>
+                          {project}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             ) : (
-              <div className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground">
-                No active client accounts. Create one in Client Accounts first.
-              </div>
+              <EmptyState
+                icon={UserRound}
+                title="No active client accounts"
+                description="Create one in Client Accounts before opening tickets."
+                action={<Button variant="outline" type="button" onClick={() => navigate("/accounts")}>Go to Client Accounts</Button>}
+              />
             )}
             <FormField label="Issue title">
               <Input name="title" required placeholder="Cannot export report" />
             </FormField>
             <MarkdownEditor value={descriptionMarkdown} onChange={setDescriptionMarkdown} />
-            <Button type="submit" disabled={!activeAccounts.length}>Submit ticket</Button>
+            <Button type="submit" disabled={!activeAccounts.length}>
+              Submit ticket
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Button>
             {createdTicketId && (
-              <div className="grid gap-3 rounded-md border bg-muted/40 p-4 text-sm">
-                <p className="font-medium">Ticket submitted. Your ticket number is {createdTicketId}.</p>
-                <Button variant="outline" type="button" onClick={() => navigate("/track-issue")}>Go to Track Issue</Button>
+              <div className="grid gap-3 rounded-lg border bg-muted/30 p-4 text-sm">
+                <div className="flex items-start gap-3">
+                  <div className="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background">
+                    <Check className="size-4" aria-hidden="true" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Ticket submitted</p>
+                    <p className="text-muted-foreground">Your ticket number is <span className="font-mono text-foreground">{createdTicketId}</span>.</p>
+                  </div>
+                </div>
+                <Button variant="outline" type="button" onClick={() => navigate(`/track-issue?ticket=${createdTicketId}`)}>
+                  Track this ticket
+                  <ArrowRight className="size-4" aria-hidden="true" />
+                </Button>
               </div>
             )}
           </form>
@@ -411,10 +525,12 @@ function SendTicketPage({ tickets, accounts, setTickets, setSelectedTicketId, sh
 }
 
 function TrackIssuePage({ tickets, setTickets, showToast }) {
-  const [trackingNumber, setTrackingNumber] = useState("");
-  const [trackedTicketId, setTrackedTicketId] = useState("");
+  const initialTicketNumber = new URLSearchParams(window.location.search).get("ticket")?.trim().toUpperCase() || "";
+  const [trackingNumber, setTrackingNumber] = useState(initialTicketNumber);
+  const [trackedTicketId, setTrackedTicketId] = useState(initialTicketNumber);
   const [comment, setComment] = useState("");
   const trackedTicket = tickets.find((ticket) => ticket.id.toUpperCase() === trackedTicketId);
+  const demoTickets = tickets.slice(0, 3);
 
   function trackTicket(event) {
     event.preventDefault();
@@ -444,25 +560,54 @@ function TrackIssuePage({ tickets, setTickets, showToast }) {
 
   return (
     <main className="mx-auto grid w-full max-w-3xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader centered eyebrow="User UI" title="Track issue" description="User enters a ticket number to check the current issue status." />
-      <Card>
+      <PageHeader centered eyebrow="User UI" title="Track issue" description="Check status, read the latest update, and add a comment when more detail is needed." />
+      <Card className="shadow-sm">
         <CardHeader>
-          <CardTitle>Track by ticket number</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <Search className="size-5" aria-hidden="true" />
+            Track by ticket number
+          </CardTitle>
           <CardDescription>Enter the ticket number shared after submission.</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-5">
-          <form className="grid gap-3" onSubmit={trackTicket}>
+          <form className="grid gap-3 sm:grid-cols-[1fr_auto] sm:items-end" onSubmit={trackTicket}>
             <FormField label="Ticket number">
               <Input value={trackingNumber} onChange={(event) => setTrackingNumber(event.target.value)} placeholder="Example: MA-2026-001" />
             </FormField>
-            <Button type="submit">Track</Button>
+            <Button type="submit">
+              Track
+              <ArrowRight className="size-4" aria-hidden="true" />
+            </Button>
           </form>
+          {demoTickets.length > 0 && (
+            <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+              <span>Demo tickets</span>
+              {demoTickets.map((ticket) => (
+                <Button
+                  key={ticket.id}
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={() => {
+                    setTrackingNumber(ticket.id);
+                    setTrackedTicketId(ticket.id);
+                    setComment("");
+                  }}
+                >
+                  {ticket.id}
+                </Button>
+              ))}
+            </div>
+          )}
           <TrackResult ticket={trackedTicket} hasSearched={Boolean(trackedTicketId)} />
           {trackedTicket && (
             <>
               <Separator />
               <form className="grid gap-3" onSubmit={addUserComment}>
-                <h4 className="text-sm font-medium">Add comment</h4>
+                <div>
+                  <h4 className="text-sm font-medium">Add comment</h4>
+                  <p className="text-sm text-muted-foreground">Use this when you need to clarify or ask for an update.</p>
+                </div>
                 <FormField label="Comment">
                   <Textarea value={comment} onChange={(event) => setComment(event.target.value)} rows="3" placeholder="Add more detail or ask for update" />
                 </FormField>
@@ -478,11 +623,11 @@ function TrackIssuePage({ tickets, setTickets, showToast }) {
 
 function TrackResult({ ticket, hasSearched }) {
   if (!hasSearched) {
-    return <div className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground">Insert ticket number to see current status.</div>;
+    return <EmptyState icon={Search} title="Search a ticket" description="Insert a ticket number to see current owner, status, and latest update." />;
   }
 
   if (!ticket) {
-    return <div className="rounded-md border bg-muted/40 p-4 text-sm text-muted-foreground">Ticket not found. Please check the ticket number.</div>;
+    return <EmptyState icon={TicketIcon} title="Ticket not found" description="Check the ticket number format and try again." />;
   }
 
   const status = statuses[ticket.status];
@@ -490,7 +635,7 @@ function TrackResult({ ticket, hasSearched }) {
   const latest = [...ticket.history, ...notes].at(-1);
 
   return (
-    <Card className="bg-muted/30 shadow-none">
+    <Card className="bg-muted/20 shadow-none">
       <CardHeader className="gap-3">
         <div className="flex items-start justify-between gap-3">
           <div>
@@ -500,19 +645,30 @@ function TrackResult({ ticket, hasSearched }) {
           <StatusBadge status={ticket.status} />
         </div>
       </CardHeader>
-      <CardContent className="grid gap-2 text-sm">
-        <p><span className="font-medium">Client:</span> {ticket.clientName || "Unknown client"}</p>
-        <p><span className="font-medium">Project:</span> {ticket.project}</p>
-        <p><span className="font-medium">Current owner:</span> {status.owner}</p>
-        <p><span className="font-medium">Last update:</span> {latest?.message || "Ticket submitted."}</p>
-        <p className="text-muted-foreground">{ticket.updatedAt}</p>
+      <CardContent className="grid gap-4 text-sm">
+        <TicketProgress status={ticket.status} />
+        <div className="grid gap-3 sm:grid-cols-3">
+          <MetaBox label="Project" value={ticket.project} />
+          <MetaBox label="Current owner" value={status.owner} />
+          <MetaBox label="Updated" value={ticket.updatedAt} />
+        </div>
+        <div className="rounded-lg border bg-background p-4">
+          <p className="text-xs font-medium uppercase text-muted-foreground">Last update</p>
+          <p className="mt-2">{latest?.message || "Ticket submitted."}</p>
+        </div>
+        <div className="rounded-lg border bg-background p-4">
+          <p className="mb-3 text-xs font-medium uppercase text-muted-foreground">Description</p>
+          <MarkdownContent markdown={getDescriptionMarkdown(ticket)} />
+        </div>
         {notes.length > 0 && (
-          <div className="mt-3 grid gap-2 border-t pt-3">
-            <p className="font-medium">Comments / notes</p>
+          <div className="grid gap-2 rounded-lg border bg-background p-4">
+            <p className="text-xs font-medium uppercase text-muted-foreground">Comments / notes</p>
             {notes.map((note, index) => (
-              <p key={`${note.createdAt}-${index}`} className="text-muted-foreground">
-                {note.actor || "Admin"}: {note.message}
-              </p>
+              <div key={`${note.createdAt}-${index}`} className="rounded-md bg-muted/50 p-3">
+                <p className="font-medium">{note.actor || "Admin"}</p>
+                <p className="text-muted-foreground">{note.message}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{note.createdAt}</p>
+              </div>
             ))}
           </div>
         )}
@@ -526,6 +682,15 @@ function AdminPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets,
   const [projectFilter, setProjectFilter] = useState("All Projects");
   const filteredTickets = projectFilter === "All Projects" ? tickets : tickets.filter((ticket) => ticket.project === projectFilter);
   const selectedTicket = filteredTickets.find((ticket) => ticket.id === selectedTicketId) || filteredTickets[0];
+  const stats = useMemo(
+    () => [
+      { label: "Total", value: tickets.length, hint: "All tickets" },
+      { label: "Open", value: tickets.filter((ticket) => ticket.status !== "closed").length, hint: "Needs action" },
+      { label: "Waiting client", value: tickets.filter((ticket) => ticket.status === "waitingUat").length, hint: "UAT confirmation" },
+      { label: "Closed", value: tickets.filter((ticket) => ticket.status === "closed").length, hint: "Completed" },
+    ],
+    [tickets],
+  );
 
   useEffect(() => {
     if (selectedTicket && selectedTicket.id !== selectedTicketId) {
@@ -573,7 +738,12 @@ function AdminPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets,
 
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
-      <PageHeader eyebrow="Admin Back Office UI" title="Manage tickets by project" />
+      <PageHeader eyebrow="Admin Back Office UI" title="Manage tickets by project" description="Review incoming tickets, move workflow status, and keep client-facing notes up to date." />
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        {stats.map((stat) => (
+          <StatCard key={stat.label} {...stat} />
+        ))}
+      </div>
       <div className="flex justify-end">
         <div className="w-full max-w-xs">
           <FormField label="Filter project">
@@ -604,7 +774,7 @@ function AdminPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets,
                 <TicketCard key={ticket.id} ticket={ticket} selected={ticket.id === selectedTicket?.id} onSelect={() => setSelectedTicketId(ticket.id)} />
               ))
             ) : (
-              <p className="text-sm text-muted-foreground">No tickets for this project.</p>
+              <EmptyState icon={TicketIcon} title="No tickets" description="No tickets match the selected project filter." />
             )}
           </CardContent>
         </Card>
@@ -615,22 +785,34 @@ function AdminPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets,
 }
 
 function TicketCard({ ticket, selected, onSelect }) {
+  const status = statuses[ticket.status];
+
   return (
     <button
       className={cn(
-        "grid gap-3 rounded-lg border bg-card p-4 text-left shadow-sm transition hover:border-primary/30 hover:bg-muted/30",
-        selected && "border-primary ring-2 ring-primary/15",
+        "grid gap-3 rounded-lg border bg-card p-4 text-left shadow-sm transition hover:border-foreground hover:bg-muted/40",
+        selected && "border-foreground ring-2 ring-foreground/10",
       )}
       type="button"
       onClick={onSelect}
+      aria-pressed={selected}
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-xs font-medium text-muted-foreground">{ticket.id}</span>
         <StatusBadge status={ticket.status} />
       </div>
-      <Badge variant="secondary" className="justify-self-start">{ticket.project}</Badge>
+      <div className="flex flex-wrap gap-2">
+        <Badge variant="secondary">{ticket.project}</Badge>
+        <Badge variant="outline">{status.owner}</Badge>
+      </div>
       <p className="font-medium leading-snug">{ticket.title}</p>
-      <p className="text-sm text-muted-foreground">{ticket.clientName || "Unknown client"}</p>
+      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
+        <span>{ticket.clientName || "Unknown client"}</span>
+        <span className="inline-flex items-center gap-1 whitespace-nowrap">
+          <Clock3 className="size-3.5" aria-hidden="true" />
+          {ticket.updatedAt}
+        </span>
+      </div>
     </button>
   );
 }
@@ -671,6 +853,7 @@ function AdminDetail({ ticket, onMove, onAddNote }) {
         </div>
       </CardHeader>
       <CardContent className="grid gap-5">
+        <TicketProgress status={ticket.status} />
         <div className="rounded-lg border bg-muted/20 p-4">
           <MarkdownContent markdown={getDescriptionMarkdown(ticket)} />
         </div>
@@ -683,9 +866,14 @@ function AdminDetail({ ticket, onMove, onAddNote }) {
         </div>
         <div className="rounded-lg border bg-muted/30 p-4">
           <div className="flex items-start justify-between gap-3">
-            <div>
+            <div className="flex gap-3">
+              <div className="flex size-9 shrink-0 items-center justify-center rounded-full border bg-background">
+                <ArrowRight className="size-4" aria-hidden="true" />
+              </div>
+              <div>
               <p className="text-xs font-medium text-muted-foreground">Next action</p>
               <p className="mt-1 text-sm">{actions.length ? actions.map((action) => `${action.actor}: ${action.label}`).join(" / ") : "No action. Ticket is complete."}</p>
+              </div>
             </div>
             <Badge variant="secondary">{status.owner}</Badge>
           </div>
@@ -693,7 +881,7 @@ function AdminDetail({ ticket, onMove, onAddNote }) {
         <Separator />
         <section className="grid gap-3">
           <h4 className="text-sm font-medium uppercase tracking-wide text-muted-foreground">Move workflow</h4>
-          <div className="grid gap-2">
+          <div className="grid gap-2 sm:grid-cols-2">
             {actions.length ? (
               actions.map((action, index) => (
                 <Button key={action.label} variant={action.danger ? "destructive" : "default"} type="button" onClick={() => onMove(ticket.id, index)}>
@@ -729,6 +917,9 @@ function AdminDetail({ ticket, onMove, onAddNote }) {
 }
 
 function ClientAccountsPage({ accounts, setAccounts, showToast }) {
+  const activeCount = accounts.filter((account) => account.active).length;
+  const projectCount = new Set(accounts.flatMap((account) => account.projects)).size;
+
   function createAccount(event) {
     event.preventDefault();
     const form = new FormData(event.currentTarget);
@@ -762,10 +953,18 @@ function ClientAccountsPage({ accounts, setAccounts, showToast }) {
         title="Client accounts"
         description="Create client accounts and control which projects they can use when opening tickets."
       />
+      <div className="grid gap-3 sm:grid-cols-3">
+        <StatCard label="Accounts" value={accounts.length} hint="Provisioned clients" />
+        <StatCard label="Active" value={activeCount} hint="Can open tickets" />
+        <StatCard label="Projects" value={projectCount} hint="Available options" />
+      </div>
       <div className="grid gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader>
-            <CardTitle>Create account</CardTitle>
+            <CardTitle className="flex items-center gap-2">
+              <UserRound className="size-5" aria-hidden="true" />
+              Create account
+            </CardTitle>
             <CardDescription>Provision a client account for ticket submission.</CardDescription>
           </CardHeader>
           <CardContent>
@@ -783,13 +982,13 @@ function ClientAccountsPage({ accounts, setAccounts, showToast }) {
             </form>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="shadow-sm">
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Accounts</CardTitle>
             <Badge variant="secondary">{accounts.length}</Badge>
           </CardHeader>
           <CardContent className="grid gap-3">
-            {accounts.map((account) => (
+            {accounts.length ? accounts.map((account) => (
               <Card key={account.id} className="shadow-none">
                 <CardContent className="grid gap-4 py-4">
                   <div className="flex items-start justify-between gap-3">
@@ -810,7 +1009,9 @@ function ClientAccountsPage({ accounts, setAccounts, showToast }) {
                   </Button>
                 </CardContent>
               </Card>
-            ))}
+            )) : (
+              <EmptyState icon={UserRound} title="No client accounts" description="Create an account to let a client submit tickets." />
+            )}
           </CardContent>
         </Card>
       </div>
