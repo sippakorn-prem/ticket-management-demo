@@ -6,7 +6,7 @@ import { EditorContent, useEditor } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import MarkdownPreview from "@uiw/react-markdown-preview";
 import "@uiw/react-markdown-preview/markdown.css";
-import { ArrowRight, BarChart3, Bold, Check, Circle, Clock3, Italic, PieChart, Search, Ticket as TicketIcon, Underline as UnderlineIcon, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, BarChart3, Bold, Check, ChevronRight, Circle, Clock3, Italic, Search, Ticket as TicketIcon, Underline as UnderlineIcon, UserRound } from "lucide-react";
 import TurndownService from "turndown";
 
 import { Badge } from "@/components/ui/badge";
@@ -31,20 +31,54 @@ turndownService.addRule("underline", {
   replacement: (content) => `<u>${content}</u>`,
 });
 
+const statusColors = {
+  intake: "border-sky-200 bg-sky-50 text-sky-950",
+  review: "border-violet-200 bg-violet-50 text-violet-950",
+  progress: "border-blue-200 bg-blue-50 text-blue-950",
+  waiting: "border-amber-200 bg-amber-50 text-amber-950",
+  failed: "border-red-200 bg-red-50 text-red-950",
+  passed: "border-emerald-200 bg-emerald-50 text-emerald-950",
+  deploy: "border-teal-200 bg-teal-50 text-teal-950",
+  closed: "border-border bg-muted text-muted-foreground",
+};
+
+const statusChartColors = {
+  intake: { barClass: "bg-sky-500", dotClass: "bg-sky-500", strokeClass: "text-sky-500" },
+  review: { barClass: "bg-violet-500", dotClass: "bg-violet-500", strokeClass: "text-violet-500" },
+  progress: { barClass: "bg-blue-500", dotClass: "bg-blue-500", strokeClass: "text-blue-500" },
+  waiting: { barClass: "bg-amber-500", dotClass: "bg-amber-500", strokeClass: "text-amber-500" },
+  failed: { barClass: "bg-red-500", dotClass: "bg-red-500", strokeClass: "text-red-500" },
+  passed: { barClass: "bg-emerald-500", dotClass: "bg-emerald-500", strokeClass: "text-emerald-500" },
+  deploy: { barClass: "bg-teal-500", dotClass: "bg-teal-500", strokeClass: "text-teal-500" },
+  closed: { barClass: "bg-muted-foreground/50", dotClass: "bg-muted-foreground", strokeClass: "text-muted-foreground" },
+};
+
+const projectChartPalette = [
+  statusChartColors.intake,
+  statusChartColors.review,
+  statusChartColors.deploy,
+  statusChartColors.passed,
+  statusChartColors.waiting,
+];
+
+function getChartColors(colorKey) {
+  return statusChartColors[colorKey] || statusChartColors.closed;
+}
+
 const statuses = {
-  new: { label: "Submitted", owner: "Service Desk", tone: "warn" },
-  triage: { label: "Triaged", owner: "System Owner", tone: "warn" },
-  approved: { label: "Approved", owner: "Developer", tone: "" },
-  inDevelopment: { label: "In Development", owner: "Developer", tone: "" },
-  readyQa: { label: "Ready for QA", owner: "QA", tone: "warn" },
-  qaFailed: { label: "QA Not Pass", owner: "Developer", tone: "danger" },
-  qaPassed: { label: "QA Passed", owner: "Service Desk", tone: "" },
-  waitingUat: { label: "Waiting Client UAT", owner: "Client", tone: "warn" },
-  uatFailed: { label: "UAT Not Pass", owner: "Developer", tone: "danger" },
-  uatPassed: { label: "UAT Passed", owner: "System Owner", tone: "" },
-  readyDeploy: { label: "Ready to Deploy", owner: "Developer", tone: "warn" },
-  deployed: { label: "Deployed", owner: "Service Desk", tone: "" },
-  closed: { label: "Closed", owner: "Done", tone: "" },
+  new: { label: "Submitted", owner: "Service Desk", color: "intake" },
+  triage: { label: "Triaged", owner: "System Owner", color: "review" },
+  approved: { label: "Approved", owner: "Developer", color: "progress" },
+  inDevelopment: { label: "In Development", owner: "Developer", color: "progress" },
+  readyQa: { label: "Ready for QA", owner: "QA", color: "waiting" },
+  qaFailed: { label: "QA Not Pass", owner: "Developer", color: "failed" },
+  qaPassed: { label: "QA Passed", owner: "Service Desk", color: "passed" },
+  waitingUat: { label: "Waiting Client UAT", owner: "Client", color: "waiting" },
+  uatFailed: { label: "UAT Not Pass", owner: "Developer", color: "failed" },
+  uatPassed: { label: "UAT Passed", owner: "System Owner", color: "passed" },
+  readyDeploy: { label: "Ready to Deploy", owner: "Developer", color: "deploy" },
+  deployed: { label: "Deployed", owner: "Service Desk", color: "deploy" },
+  closed: { label: "Closed", owner: "Done", color: "closed" },
 };
 
 const actionsByStatus = {
@@ -384,8 +418,6 @@ function App() {
         <AdminTicketsPage
           key={`admin-tickets-${resetToken}`}
           tickets={tickets}
-          selectedTicketId={selectedTicketId}
-          setSelectedTicketId={setSelectedTicketId}
           setTickets={setTickets}
           showToast={showToast}
           navigate={navigate}
@@ -469,13 +501,29 @@ function StatCard({ label, value, hint }) {
   );
 }
 
-const blockedStatuses = ["qaFailed", "uatFailed"];
+const pendingStatuses = ["new", "waitingUat"];
 
-function countWorkflowPipeline(ticketList) {
-  return workflowSteps.map((step) => ({
-    label: step.label,
-    value: ticketList.filter((ticket) => step.statuses.includes(ticket.status)).length,
-  }));
+function getAdminStatusCounts(ticketList) {
+  const done = ticketList.filter((ticket) => ticket.status === "closed").length;
+  const pending = ticketList.filter((ticket) => pendingStatuses.includes(ticket.status)).length;
+  const inProgress = ticketList.length - done - pending;
+
+  return {
+    left: inProgress + pending,
+    done,
+    inProgress,
+    pending,
+  };
+}
+
+function countAdminStatusSummary(ticketList) {
+  const { done, inProgress, pending } = getAdminStatusCounts(ticketList);
+
+  return [
+    { label: "Left", value: inProgress + pending, ...getChartColors("waiting") },
+    { label: "Done", value: done, ...getChartColors("closed") },
+    { label: "In progress", value: inProgress, ...getChartColors("progress") },
+  ];
 }
 
 function countByProject(ticketList) {
@@ -486,25 +534,15 @@ function countByProject(ticketList) {
 
   return Object.entries(counts)
     .sort((left, right) => right[1] - left[1])
-    .map(([label, value]) => ({ label, value }));
+    .map(([label, value], index) => ({
+      label,
+      value,
+      ...projectChartPalette[index % projectChartPalette.length],
+    }));
 }
 
-function countStatusMix(ticketList) {
-  const closed = ticketList.filter((ticket) => ticket.status === "closed").length;
-  const waitingClient = ticketList.filter((ticket) => ticket.status === "waitingUat").length;
-  const blocked = ticketList.filter((ticket) => blockedStatuses.includes(ticket.status)).length;
-  const inProgress = ticketList.length - closed - waitingClient - blocked;
-
-  return [
-    { label: "In progress", value: inProgress, barClass: "bg-foreground", dotClass: "bg-foreground" },
-    { label: "Waiting client", value: waitingClient, barClass: "bg-muted-foreground/70", dotClass: "bg-muted-foreground" },
-    { label: "QA / UAT failed", value: blocked, barClass: "bg-destructive", dotClass: "bg-destructive" },
-    { label: "Closed", value: closed, barClass: "bg-muted", dotClass: "bg-muted" },
-  ];
-}
-
-function HorizontalBarChart({ items, emptyLabel = "No tickets to display." }) {
-  const maxValue = Math.max(...items.map((item) => item.value), 1);
+function HorizontalBarChart({ items, total, emptyLabel = "No tickets to display.", showColorDot = false }) {
+  const scaleTotal = total ?? (items.reduce((sum, item) => sum + item.value, 0) || 1);
 
   if (!items.length) {
     return <p className="text-sm text-muted-foreground">{emptyLabel}</p>;
@@ -512,141 +550,64 @@ function HorizontalBarChart({ items, emptyLabel = "No tickets to display." }) {
 
   return (
     <div className="grid gap-3">
-      {items.map((item) => (
-        <div key={item.label} className="grid gap-1.5">
-          <div className="flex items-center justify-between gap-3 text-sm">
-            <span className="truncate">{item.label}</span>
-            <span className="shrink-0 font-medium tabular-nums">{item.value}</span>
+      {items.map((item) => {
+        const barWidth = scaleTotal > 0 && item.value > 0 ? (item.value / scaleTotal) * 100 : 0;
+
+        return (
+          <div key={item.label} className="grid gap-1.5">
+            <div className="flex items-center justify-between gap-3 text-sm leading-none">
+              <div className="flex min-w-0 items-center gap-2">
+                {showColorDot && (
+                  <span className={cn("size-2 shrink-0 rounded-full", item.dotClass || "bg-foreground")} aria-hidden="true" />
+                )}
+                <span className="truncate">{item.label}</span>
+              </div>
+              <span className="shrink-0 font-medium tabular-nums text-muted-foreground">{item.value}</span>
+            </div>
+            <div className="h-2.5 overflow-hidden rounded-full bg-muted ring-1 ring-border/60" role="presentation">
+              <div
+                className={cn("h-full rounded-full transition-all duration-500", item.barClass || "bg-foreground")}
+                style={{ width: `${barWidth}%` }}
+              />
+            </div>
           </div>
-          <div className="h-2 overflow-hidden rounded-full bg-muted">
-            <div
-              className={cn("h-full rounded-full bg-foreground transition-all duration-500", item.barClass)}
-              style={{ width: `${(item.value / maxValue) * 100}%` }}
-            />
-          </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }
 
-function ChartLegend({ segments }) {
-  return (
-    <div className="grid gap-2 sm:grid-cols-2">
-      {segments.map((segment) => (
-        <div key={segment.label} className="flex items-center justify-between gap-3 rounded-md border bg-muted/20 px-3 py-2 text-sm">
-          <div className="flex min-w-0 items-center gap-2">
-            <span className={cn("size-2.5 shrink-0 rounded-full", segment.dotClass)} aria-hidden="true" />
-            <span className="truncate">{segment.label}</span>
-          </div>
-          <span className="shrink-0 font-medium tabular-nums">{segment.value}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function DonutChart({ segments, total }) {
-  const radius = 15.5;
-  const circumference = 2 * Math.PI * radius;
-  let offset = 0;
-
-  return (
-    <div className="relative mx-auto size-36">
-      <svg viewBox="0 0 36 36" className="size-full -rotate-90" aria-hidden="true">
-        <circle cx="18" cy="18" r={radius} fill="none" stroke="currentColor" className="text-muted" strokeWidth="3.5" />
-        {total > 0
-          ? segments.map((segment) => {
-              const length = (segment.value / total) * circumference;
-              const circle = (
-                <circle
-                  key={segment.label}
-                  cx="18"
-                  cy="18"
-                  r={radius}
-                  fill="none"
-                  stroke="currentColor"
-                  className={segment.strokeClass}
-                  strokeWidth="3.5"
-                  strokeLinecap="butt"
-                  strokeDasharray={`${length} ${circumference}`}
-                  strokeDashoffset={-offset}
-                />
-              );
-              offset += length;
-              return circle;
-            })
-          : null}
-      </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-semibold tabular-nums tracking-tight">{total}</span>
-        <span className="text-xs text-muted-foreground">tickets</span>
-      </div>
-    </div>
-  );
-}
-
-function AdminDashboardCharts({ tickets, projectFilter }) {
-  const pipeline = useMemo(() => countWorkflowPipeline(tickets), [tickets]);
-  const statusMix = useMemo(() => countStatusMix(tickets), [tickets]);
+function AdminDashboardCharts({ tickets }) {
+  const statusSummary = useMemo(() => countAdminStatusSummary(tickets), [tickets]);
   const projectBreakdown = useMemo(() => countByProject(tickets), [tickets]);
-  const donutSegments = statusMix.map((segment) => ({
-    ...segment,
-    strokeClass:
-      segment.label === "In progress"
-        ? "text-foreground"
-        : segment.label === "Waiting client"
-          ? "text-muted-foreground"
-          : segment.label === "QA / UAT failed"
-            ? "text-destructive"
-            : "text-muted",
-  }));
 
   return (
-    <section className="grid gap-4 xl:grid-cols-3">
-      <Card className="shadow-sm xl:col-span-2">
-        <CardHeader>
+    <section className="grid gap-4 lg:grid-cols-2 lg:items-stretch">
+      <Card className="flex h-full flex-col gap-0 overflow-hidden py-0 shadow-sm">
+        <CardHeader className="border-b px-6 py-4">
           <CardTitle className="flex items-center gap-2 text-base">
             <BarChart3 className="size-4 text-muted-foreground" aria-hidden="true" />
-            Workflow pipeline
+            Ticket status
           </CardTitle>
-          <CardDescription>
-            {projectFilter === "All Projects" ? "Tickets at each MA workflow stage." : `Pipeline for ${projectFilter}.`}
-          </CardDescription>
+          <CardDescription>How many tickets are left, done, and actively in progress.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <HorizontalBarChart items={pipeline} />
+        <CardContent className="flex-1 py-6">
+          <HorizontalBarChart showColorDot total={tickets.length} items={statusSummary} emptyLabel="No tickets in the current filter." />
         </CardContent>
       </Card>
 
-      <Card className="shadow-sm">
-        <CardHeader>
+      <Card className="flex h-full flex-col gap-0 overflow-hidden py-0 shadow-sm">
+        <CardHeader className="border-b px-6 py-4">
           <CardTitle className="flex items-center gap-2 text-base">
-            <PieChart className="size-4 text-muted-foreground" aria-hidden="true" />
-            Status overview
+            <BarChart3 className="size-4 text-muted-foreground" aria-hidden="true" />
+            Tickets by project
           </CardTitle>
-          <CardDescription>Open, blocked, waiting, and closed mix.</CardDescription>
+          <CardDescription>Ticket volume per client project.</CardDescription>
         </CardHeader>
-        <CardContent className="grid gap-6">
-          <DonutChart segments={donutSegments} total={tickets.length} />
-          <ChartLegend segments={statusMix} />
+        <CardContent className="flex-1 py-6">
+          <HorizontalBarChart showColorDot total={tickets.length} items={projectBreakdown} emptyLabel="No project data available." />
         </CardContent>
       </Card>
-
-      {projectFilter === "All Projects" && (
-        <Card className="shadow-sm xl:col-span-3">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="size-4 text-muted-foreground" aria-hidden="true" />
-              Tickets by project
-            </CardTitle>
-            <CardDescription>Volume across provisioned client projects.</CardDescription>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            <HorizontalBarChart items={projectBreakdown} />
-          </CardContent>
-        </Card>
-      )}
     </section>
   );
 }
@@ -1021,46 +982,41 @@ function AdminDashboardPage({ tickets, navigate }) {
   const projects = useMemo(() => ["All Projects", ...Array.from(new Set(tickets.map((ticket) => ticket.project))).sort()], [tickets]);
   const [projectFilter, setProjectFilter] = useState("All Projects");
   const filteredTickets = projectFilter === "All Projects" ? tickets : tickets.filter((ticket) => ticket.project === projectFilter);
-  const stats = useMemo(
-    () => [
-      { label: "Total", value: filteredTickets.length, hint: projectFilter === "All Projects" ? "All tickets" : projectFilter },
-      { label: "Open", value: filteredTickets.filter((ticket) => ticket.status !== "closed").length, hint: "Needs action" },
-      { label: "Waiting client", value: filteredTickets.filter((ticket) => ticket.status === "waitingUat").length, hint: "UAT confirmation" },
-      { label: "Closed", value: filteredTickets.filter((ticket) => ticket.status === "closed").length, hint: "Completed" },
-    ],
-    [filteredTickets, projectFilter],
-  );
+  const stats = useMemo(() => {
+    const { left, done, inProgress } = getAdminStatusCounts(filteredTickets);
+
+    return [
+      { label: "Left", value: left, hint: "Open tickets remaining" },
+      { label: "Done", value: done, hint: "Closed tickets" },
+      { label: "In progress", value: inProgress, hint: "Active in workflow" },
+    ];
+  }, [filteredTickets]);
 
   return (
     <main className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-8 sm:px-6 lg:px-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <PageHeader eyebrow="Admin Back Office UI" title="Dashboard" description="Workflow pipeline, status mix, and ticket volume at a glance." />
+        <PageHeader eyebrow="Admin Back Office UI" title="Dashboard" description="Open workload, completed tickets, and volume by project." />
         <AdminSubNav route="/admin" navigate={navigate} />
       </div>
       <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div className="grid flex-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid flex-1 gap-3 sm:grid-cols-3">
           {stats.map((stat) => (
             <StatCard key={stat.label} {...stat} />
           ))}
         </div>
         <AdminProjectFilter projects={projects} projectFilter={projectFilter} onProjectFilterChange={setProjectFilter} />
       </div>
-      <AdminDashboardCharts tickets={filteredTickets} projectFilter={projectFilter} />
+      <AdminDashboardCharts tickets={filteredTickets} />
     </main>
   );
 }
 
-function AdminTicketsPage({ tickets, selectedTicketId, setSelectedTicketId, setTickets, showToast, navigate }) {
+function AdminTicketsPage({ tickets, setTickets, showToast, navigate }) {
   const projects = useMemo(() => ["All Projects", ...Array.from(new Set(tickets.map((ticket) => ticket.project))).sort()], [tickets]);
   const [projectFilter, setProjectFilter] = useState("All Projects");
+  const [viewingTicketId, setViewingTicketId] = useState(null);
   const filteredTickets = projectFilter === "All Projects" ? tickets : tickets.filter((ticket) => ticket.project === projectFilter);
-  const selectedTicket = filteredTickets.find((ticket) => ticket.id === selectedTicketId) || filteredTickets[0];
-
-  useEffect(() => {
-    if (selectedTicket && selectedTicket.id !== selectedTicketId) {
-      setSelectedTicketId(selectedTicket.id);
-    }
-  }, [selectedTicket, selectedTicketId, setSelectedTicketId]);
+  const viewingTicket = viewingTicketId ? tickets.find((ticket) => ticket.id === viewingTicketId) : null;
 
   function moveWorkflow(ticketId, actionIndex) {
     const ticket = tickets.find((item) => item.id === ticketId);
@@ -1106,78 +1062,75 @@ function AdminTicketsPage({ tickets, selectedTicketId, setSelectedTicketId, setT
         <PageHeader eyebrow="Admin Back Office UI" title="Manage tickets" description="Review tickets, move workflow status, and keep client-facing notes up to date." />
         <AdminSubNav route="/admin/tickets" navigate={navigate} />
       </div>
-      <div className="flex justify-end">
-        <AdminProjectFilter projects={projects} projectFilter={projectFilter} onProjectFilterChange={setProjectFilter} />
-      </div>
-      <div className="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)]">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle>Ticket list</CardTitle>
-            <Badge variant="secondary">{filteredTickets.length}</Badge>
-          </CardHeader>
-          <CardContent className="grid gap-3">
-            {filteredTickets.length ? (
-              filteredTickets.map((ticket) => (
-                <TicketCard key={ticket.id} ticket={ticket} selected={ticket.id === selectedTicket?.id} onSelect={() => setSelectedTicketId(ticket.id)} />
-              ))
-            ) : (
-              <EmptyState icon={TicketIcon} title="No tickets" description="No tickets match the selected project filter." />
-            )}
-          </CardContent>
-        </Card>
-        <AdminDetail ticket={selectedTicket} onMove={moveWorkflow} onAddNote={addNote} />
-      </div>
+      {!viewingTicket ? (
+        <>
+          <div className="flex justify-end">
+            <AdminProjectFilter projects={projects} projectFilter={projectFilter} onProjectFilterChange={setProjectFilter} />
+          </div>
+          <TicketList tickets={filteredTickets} onSelect={setViewingTicketId} />
+        </>
+      ) : (
+        <AdminDetail ticket={viewingTicket} onBack={() => setViewingTicketId(null)} onMove={moveWorkflow} onAddNote={addNote} />
+      )}
     </main>
   );
 }
 
-function TicketCard({ ticket, selected, onSelect }) {
-  const status = statuses[ticket.status];
-
+function TicketList({ tickets, onSelect }) {
   return (
-    <button
-      className={cn(
-        "grid gap-3 rounded-lg border bg-card p-4 text-left shadow-sm transition hover:border-foreground hover:bg-muted/40",
-        selected && "border-foreground ring-2 ring-foreground/10",
+    <Card className="gap-0 overflow-hidden py-0 shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between border-b px-6 py-4">
+        <CardTitle>Ticket list</CardTitle>
+        <Badge variant="secondary">{tickets.length}</Badge>
+      </CardHeader>
+      {tickets.length ? (
+        <ul className="m-0 list-none divide-y divide-border p-0">
+          {tickets.map((ticket) => (
+            <TicketListRow key={ticket.id} ticket={ticket} onSelect={() => onSelect(ticket.id)} />
+          ))}
+        </ul>
+      ) : (
+        <CardContent className="py-6">
+          <EmptyState icon={TicketIcon} title="No tickets" description="No tickets match the selected project filter." />
+        </CardContent>
       )}
-      type="button"
-      onClick={onSelect}
-      aria-pressed={selected}
-    >
-      <div className="flex items-start justify-between gap-3">
-        <span className="text-xs font-medium text-muted-foreground">{ticket.id}</span>
-        <StatusBadge status={ticket.status} />
-      </div>
-      <div className="flex flex-wrap gap-2">
-        <Badge variant="secondary">{ticket.project}</Badge>
-        <Badge variant="outline">{status.owner}</Badge>
-      </div>
-      <p className="font-medium leading-snug">{ticket.title}</p>
-      <div className="flex items-center justify-between gap-3 text-sm text-muted-foreground">
-        <span>{ticket.clientName || "Unknown client"}</span>
-        <span className="inline-flex items-center gap-1 whitespace-nowrap">
-          <Clock3 className="size-3.5" aria-hidden="true" />
-          {ticket.updatedAt}
-        </span>
-      </div>
-    </button>
+    </Card>
   );
 }
 
-function AdminDetail({ ticket, onMove, onAddNote }) {
+function TicketListRow({ ticket, onSelect }) {
+  return (
+    <li>
+      <button
+        type="button"
+        onClick={onSelect}
+        className="flex w-full items-center gap-3 px-6 py-4 text-left transition hover:bg-muted/50 sm:gap-4"
+      >
+        <span className="w-24 shrink-0 font-mono text-xs text-muted-foreground sm:w-28">{ticket.id}</span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium">{ticket.title}</p>
+          <p className="truncate text-sm text-muted-foreground">{ticket.clientName || "Unknown client"}</p>
+        </div>
+        <Badge variant="secondary" className="hidden shrink-0 sm:inline-flex">
+          {ticket.project}
+        </Badge>
+        <StatusBadge status={ticket.status} />
+        <span className="hidden shrink-0 text-sm text-muted-foreground lg:inline-flex lg:items-center lg:gap-1">
+          <Clock3 className="size-3.5" aria-hidden="true" />
+          {ticket.updatedAt}
+        </span>
+        <ChevronRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+      </button>
+    </li>
+  );
+}
+
+function AdminDetail({ ticket, onBack, onMove, onAddNote }) {
   const [note, setNote] = useState("");
 
   useEffect(() => {
     setNote("");
   }, [ticket?.id]);
-
-  if (!ticket) {
-    return (
-      <Card>
-        <CardContent className="py-6 text-sm text-muted-foreground">Select a ticket from the list.</CardContent>
-      </Card>
-    );
-  }
 
   const status = statuses[ticket.status];
   const actions = actionsByStatus[ticket.status] || [];
@@ -1189,8 +1142,12 @@ function AdminDetail({ ticket, onMove, onAddNote }) {
   }
 
   return (
-    <Card>
-      <CardHeader>
+    <Card className="gap-0 overflow-hidden py-0 shadow-sm">
+      <CardHeader className="gap-4 border-b px-6 py-5">
+        <Button variant="outline" size="sm" type="button" className="w-fit gap-2" onClick={onBack}>
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Back to list
+        </Button>
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-xs font-medium text-muted-foreground">{ticket.id}</p>
@@ -1199,7 +1156,7 @@ function AdminDetail({ ticket, onMove, onAddNote }) {
           <StatusBadge status={ticket.status} />
         </div>
       </CardHeader>
-      <CardContent className="grid gap-5">
+      <CardContent className="grid gap-5 py-6">
         <TicketProgress status={ticket.status} />
         <div className="rounded-lg border bg-muted/20 p-4">
           <MarkdownContent markdown={getDescriptionMarkdown(ticket)} />
@@ -1368,8 +1325,11 @@ function ClientAccountsPage({ accounts, setAccounts, showToast }) {
 
 function StatusBadge({ status }) {
   const meta = statuses[status];
-  const variant = meta?.tone === "danger" ? "destructive" : meta?.tone === "warn" ? "outline" : "secondary";
-  return <Badge variant={variant}>{meta?.label || status}</Badge>;
+  return (
+    <Badge variant="outline" className={statusColors[meta?.color] || statusColors.closed}>
+      {meta?.label || status}
+    </Badge>
+  );
 }
 
 function MarkdownEditor({ value, onChange }) {
